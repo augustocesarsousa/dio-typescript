@@ -1,19 +1,31 @@
 "use strict";
-let botaoAtualizar = document.getElementById("atualizar-saldo");
-let botaoLimpar = document.getElementById("limpar-saldo");
-let soma = document.getElementById("soma");
-let campoSaldo = document.getElementById("campo-saldo");
-campoSaldo.innerHTML = "0";
-function somarAoSaldo(soma) {
-    campoSaldo.innerHTML = `${Number(campoSaldo.innerHTML) + soma}`;
-}
-function limparSaldo() {
-    campoSaldo.innerHTML = "0";
-    soma.value = "";
-}
-botaoAtualizar.addEventListener("click", () => {
-    somarAoSaldo(Number(soma.value));
+let apiKey;
+let requestToken;
+let username;
+let password;
+let sessionId;
+let listId = "7101979";
+const loginInput = document.getElementById("login");
+const passwordInput = document.getElementById("senha");
+const apiKeyInput = document.getElementById("api-key");
+const loginButton = document.getElementById("login-button");
+const searchInput = document.getElementById("search");
+const searchButton = document.getElementById("search-button");
+const searchContainer = document.getElementById("search-container");
+loginInput.addEventListener("change", () => {
+    validateLoginButton();
 });
-botaoLimpar.addEventListener("click", () => {
-    limparSaldo();
+passwordInput.addEventListener("change", () => {
+    validateLoginButton();
 });
+apiKeyInput.addEventListener("change", () => {
+    validateLoginButton();
+});
+function validateLoginButton() {
+    if (loginInput.value && passwordInput.value && apiKeyInput.value) {
+        loginButton.disabled = false;
+    }
+    else {
+        loginButton.disabled = true;
+    }
+}
