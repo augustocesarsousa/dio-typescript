@@ -1,10 +1,18 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 let apiKey;
-let requestToken;
-let username;
 let password;
+let requestToken;
 let sessionId;
-let listId = "7101979";
+let username;
 const loginInput = document.getElementById("login");
 const passwordInput = document.getElementById("senha");
 const apiKeyInput = document.getElementById("api-key");
@@ -21,11 +29,84 @@ passwordInput.addEventListener("change", () => {
 apiKeyInput.addEventListener("change", () => {
     validateLoginButton();
 });
+loginButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    yield createRequestToken();
+    yield login();
+    yield createSession();
+    console.log(sessionId);
+}));
 function validateLoginButton() {
-    if (loginInput.value && passwordInput.value && apiKeyInput.value) {
+    username = loginInput.value;
+    password = passwordInput.value;
+    apiKey = apiKeyInput.value;
+    if (username && password && apiKey) {
         loginButton.disabled = false;
     }
     else {
         loginButton.disabled = true;
     }
+}
+class HttpClient {
+    static get({ url, method, body = {}, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                let request = new XMLHttpRequest();
+                let borySend = "";
+                request.open(method, url, true);
+                request.onload = () => {
+                    if (request.status >= 200 && request.status < 300) {
+                        resolve(JSON.parse(request.responseText));
+                    }
+                    else {
+                        reject({
+                            status: request.status,
+                            statusText: request.statusText,
+                        });
+                    }
+                };
+                request.onerror = () => {
+                    reject({
+                        status: request.status,
+                        statusText: request.statusText,
+                    });
+                };
+                if (body) {
+                    request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                    borySend = JSON.stringify(body);
+                }
+                request.send(borySend);
+            });
+        });
+    }
+}
+function createRequestToken() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let result = (yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
+            method: "GET",
+        }));
+        requestToken = result.request_token;
+    });
+}
+function login() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/authentication/token/validate_with_login?api_key=${apiKey}`,
+            method: "POST",
+            body: {
+                username: `${username}`,
+                password: `${password}`,
+                request_token: `${requestToken}`,
+            },
+        });
+    });
+}
+function createSession() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let result = (yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/authentication/session/new?api_key=${apiKey}&request_token=${requestToken}`,
+            method: "GET",
+        }));
+        sessionId = result.session_id;
+    });
 }
