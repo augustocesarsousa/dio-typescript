@@ -4,16 +4,24 @@ let requestToken: string;
 let sessionId: string;
 let username: string;
 
-type result = {
+type Result = {
   request_token?: string;
   session_id?: string;
 };
 
-type body = {
+type Login = {
   username?: string;
   password?: string;
   request_token?: string;
 };
+
+type Results = {
+  results: Movie[];
+}
+
+type Movie = {
+  original_title: string;
+}
 
 const loginInput = document.getElementById("login") as HTMLInputElement;
 const passwordInput = document.getElementById("senha") as HTMLInputElement;
@@ -48,6 +56,25 @@ loginButton.addEventListener("click", async () => {
   await login();
   await createSession();
   console.log(sessionId);
+  if(sessionId) releaseSearch();
+});
+
+searchButton.addEventListener("click", async () => {
+  let lista = document.getElementById("lista");
+  if (lista) {
+    lista.outerHTML = "";
+  }
+  let query = searchInput.value;
+  let movies: Results = await searchMovie(query) as Results;
+  let ul = document.createElement("ul");
+  ul.id = "lista";
+  for (const movie of movies.results) {
+    let li = document.createElement("li");
+    li.appendChild(document.createTextNode(movie.original_title));
+    ul.appendChild(li);
+  }
+  console.log(movies);
+  searchContainer.appendChild(ul);
 });
 
 function validateLoginButton() {
@@ -70,7 +97,7 @@ class HttpClient {
   }: {
     url: string;
     method: string;
-    body?: body;
+    body?: Login;
   }) {
     return new Promise((resolve, reject) => {
       let request = new XMLHttpRequest();
@@ -110,7 +137,7 @@ async function createRequestToken() {
   let result = (await HttpClient.get({
     url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
     method: "GET",
-  })) as result;
+  })) as Result;
   requestToken = result.request_token as string;
 }
 
@@ -130,6 +157,20 @@ async function createSession() {
   let result = (await HttpClient.get({
     url: `https://api.themoviedb.org/3/authentication/session/new?api_key=${apiKey}&request_token=${requestToken}`,
     method: "GET",
-  })) as result;
+  })) as Result;
   sessionId = result.session_id as string;
+}
+
+function releaseSearch() {
+  searchInput.disabled = false;
+  searchButton.disabled = false;
+}
+
+async function searchMovie(query: string) {
+  query = encodeURI(query);
+  console.log(query);
+  return await HttpClient.get({
+    url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`,
+    method: "GET",
+  });
 }

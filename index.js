@@ -34,6 +34,25 @@ loginButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, fu
     yield login();
     yield createSession();
     console.log(sessionId);
+    if (sessionId)
+        releaseSearch();
+}));
+searchButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    let lista = document.getElementById("lista");
+    if (lista) {
+        lista.outerHTML = "";
+    }
+    let query = searchInput.value;
+    let movies = yield searchMovie(query);
+    let ul = document.createElement("ul");
+    ul.id = "lista";
+    for (const movie of movies.results) {
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode(movie.original_title));
+        ul.appendChild(li);
+    }
+    console.log(movies);
+    searchContainer.appendChild(ul);
 }));
 function validateLoginButton() {
     username = loginInput.value;
@@ -108,5 +127,19 @@ function createSession() {
             method: "GET",
         }));
         sessionId = result.session_id;
+    });
+}
+function releaseSearch() {
+    searchInput.disabled = false;
+    searchButton.disabled = false;
+}
+function searchMovie(query) {
+    return __awaiter(this, void 0, void 0, function* () {
+        query = encodeURI(query);
+        console.log(query);
+        return yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`,
+            method: "GET",
+        });
     });
 }
