@@ -15,13 +15,16 @@ type Login = {
   request_token?: string;
 };
 
-type Results = {
+type ResultMovie = {
+  page: string;
   results: Movie[];
-}
+  total_pages: string;
+};
 
 type Movie = {
   original_title: string;
-}
+  id: string;
+};
 
 const loginInput = document.getElementById("login") as HTMLInputElement;
 const passwordInput = document.getElementById("senha") as HTMLInputElement;
@@ -38,6 +41,8 @@ const searchButton = document.getElementById(
 const searchContainer = document.getElementById(
   "search-container"
 ) as HTMLDivElement;
+
+const divList = document.getElementById("div-list-container") as HTMLDivElement;
 
 loginInput.addEventListener("change", () => {
   validateLoginButton();
@@ -56,38 +61,12 @@ loginButton.addEventListener("click", async () => {
   await login();
   await createSession();
   console.log(sessionId);
-  if(sessionId) releaseSearch();
+  if (sessionId) releaseSearch();
 });
 
 searchButton.addEventListener("click", async () => {
-  let lista = document.getElementById("lista");
-  if (lista) {
-    lista.outerHTML = "";
-  }
-  let query = searchInput.value;
-  let movies: Results = await searchMovie(query) as Results;
-  let ul = document.createElement("ul");
-  ul.id = "lista";
-  for (const movie of movies.results) {
-    let li = document.createElement("li");
-    li.appendChild(document.createTextNode(movie.original_title));
-    ul.appendChild(li);
-  }
-  console.log(movies);
-  searchContainer.appendChild(ul);
+  createList("1");
 });
-
-function validateLoginButton() {
-  username = loginInput.value;
-  password = passwordInput.value;
-  apiKey = apiKeyInput.value;
-
-  if (username && password && apiKey) {
-    loginButton.disabled = false;
-  } else {
-    loginButton.disabled = true;
-  }
-}
 
 class HttpClient {
   static async get({
@@ -133,6 +112,18 @@ class HttpClient {
   }
 }
 
+function validateLoginButton() {
+  username = loginInput.value;
+  password = passwordInput.value;
+  apiKey = apiKeyInput.value;
+
+  if (username && password && apiKey) {
+    loginButton.disabled = false;
+  } else {
+    loginButton.disabled = true;
+  }
+}
+
 async function createRequestToken() {
   let result = (await HttpClient.get({
     url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
@@ -166,11 +157,84 @@ function releaseSearch() {
   searchButton.disabled = false;
 }
 
-async function searchMovie(query: string) {
+async function searchMovie(query: string, page: string) {
   query = encodeURI(query);
   console.log(query);
+  // return await HttpClient.get({
+  //   url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`,
+  //   method: "GET",
+  // });
   return await HttpClient.get({
-    url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`,
+    url: `https://api.themoviedb.org/3/search/movie?api_key=a47c8e861370f3df73b313b7beb2b794&query=${query}&page=${page}`,
     method: "GET",
+  });
+}
+
+async function createList(page: string) {
+  divList.innerHTML = "";
+  let lista = document.getElementById("lista");
+  if (lista) {
+    lista.outerHTML = "";
+  }
+  let query = searchInput.value;
+  let movies: ResultMovie = (await searchMovie(query, page)) as ResultMovie;
+  let ul = document.createElement("ul");
+  ul.id = "lista";
+  for (const movie of movies.results) {
+    let li = document.createElement("li");
+    li.appendChild(
+      document.createTextNode(`${movie.id} - ${movie.original_title}`)
+    );
+    ul.appendChild(li);
+  }
+  divList.appendChild(ul);
+  createPaginate(movies.page, movies.total_pages);
+}
+
+function createPaginate(moviesPage: string, moviesTotalPage: string) {
+  let divPaginate = document.createElement("div");
+  let previuButton = document.createElement("button");
+  let nextButton = document.createElement("button");
+  let paginateText = document.createElement("p");
+  let page = document.createElement("span");
+  let separator = document.createElement("span");
+  let totalPage = document.createElement("span");
+  divPaginate.id = "paginate-buttons";
+  previuButton.id = "previu-button";
+  nextButton.id = "next-button";
+  paginateText.id = "paginate-text";
+  page.id = "number-page";
+  separator.id = "separator-page";
+  totalPage.id = "total-page";
+  divPaginate.setAttribute(
+    "style",
+    "display: flex; height: 20px; justify-content: center; align-items: center;"
+  );
+  paginateText.setAttribute("style", "margin: 0 5px");
+  previuButton.innerText = "Anterior";
+  nextButton.innerText = "Próximo";
+  page.innerText = moviesPage;
+  separator.innerText = "/";
+  totalPage.innerText = moviesTotalPage;
+  paginateText.appendChild(page);
+  paginateText.appendChild(separator);
+  paginateText.appendChild(totalPage);
+  divPaginate.appendChild(previuButton);
+  divPaginate.appendChild(paginateText);
+  divPaginate.appendChild(nextButton);
+  divList.appendChild(divPaginate);
+
+  if (Number(moviesPage) < 2) previuButton.disabled = true;
+  if (Number(moviesPage) === Number(moviesTotalPage))
+    nextButton.disabled = true;
+
+  previuButton.addEventListener("click", async () => {
+    let page: string = String(Number(moviesPage) - 1);
+    createList(page);
+  });
+
+  nextButton.addEventListener("click", async () => {
+    let page: string = String(Number(moviesPage) + 1);
+    createList(page);
   });
 }
