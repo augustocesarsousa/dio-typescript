@@ -13,15 +13,10 @@
     <div id="container">
       <div id="login-content">
         <input id="login" placeholder="Usuário" />
-        <input id="senha" placeholder="Senha" type="password" />
+        <input id="password" placeholder="Senha" type="password" />
         <input id="api-key" placeholder="Api Key" />
         <button id="login-button" disabled>Login</button>
         <button id="logout-button" disabled>Logout</button>
-      </div>
-      <div id="search-container">
-        <input id="search" placeholder="Nome do filme" disabled/>
-        <button id="search-button" disabled>Pesquisar Filme</button>
-        <div id="div-list-container"></div>
       </div>
       <div id="create-list-container">
         <div id="create-list-content" class="mb-5">
@@ -29,15 +24,22 @@
           <input type="text" id="create-list-description" class="mb-5" placeholder="Descrição da lista" disabled>
           <button id="create-list-button" class="mb-5" disabled>Criar nova lista</button>
         </div>
-        <div id="add-movie-to-list-content" class="mb-5">
-          <input type="text" id="add-movie-to-list-id-movie" class="mb-5" placeholder="Id do filme" disabled>
-          <input type="text" id="add-movie-to-list-id-list" class="mb-5" placeholder="Id da lista" disabled>
-          <button id="add-movie-to-list-button" class="mb-5" disabled>Adicionar filme a lista</button>
+        <div id="add-media-to-list-content" class="mb-5">
+          <input type="text" id="add-media-to-list-id-media" class="mb-5" placeholder="Id do filme" disabled>
+          <input type="text" id="add-media-to-list-id-list" class="mb-5" placeholder="Id da lista" disabled>
+          <button id="add-media-to-list-button" class="mb-5" disabled>Adicionar filme a lista</button>
         </div>
-        <div id="search-movie-list-content" class="mb-5">
-          <input type="text" id="search-movie-list-id" class="mb-5" placeholder="Id da lista" disabled>
-          <button id="search-movie-list-button" class="mb-5" disabled>Buscar lista</button>
+      </div>
+      <div id="search-container">
+        <div id="search-media-by-name-content" class="mb-5">
+          <input id="search-media-by-name" placeholder="Nome do filme" disabled/>
+          <button id="search-media-by-name-button" disabled>Pesquisar filme</button>
         </div>
+        <div id="search-media-by-list-content" class="mb-5">
+          <input type="text" id="search-media-by-list-id" placeholder="Id da lista" disabled>
+          <button id="search-media-by-list-button" disabled>Pesquisar lista</button>
+        </div>
+        <div id="div-list-container"></div>
       </div>
     </div>
   </body>

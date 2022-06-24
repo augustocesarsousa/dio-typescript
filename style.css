@@ -35,6 +35,14 @@ body {
     margin-left: 20px;
 }
 
+#search-media-by-name, #search-media-by-list-id {
+    width: 185px;
+}
+
+#search-media-by-name-button, #search-media-by-list-button {
+    width: 110px;
+}
+
 #div-list-container {
     width: 300px;
 }
@@ -58,7 +66,7 @@ body {
     margin-left: 20px;
 }
 
-#create-list-content, #add-movie-to-list-content, #search-movie-list-content {
+#create-list-content, #add-media-to-list-content, #search-media-list-content {
     display: flex;
     flex-direction: column;
 }

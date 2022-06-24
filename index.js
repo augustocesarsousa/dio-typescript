@@ -16,22 +16,22 @@ let sessionId;
 let username;
 const messagesSpan = document.getElementById("messages");
 const loginInput = document.getElementById("login");
-const passwordInput = document.getElementById("senha");
+const passwordInput = document.getElementById("password");
 const apiKeyInput = document.getElementById("api-key");
 const loginButton = document.getElementById("login-button");
 const logoutButton = document.getElementById("logout-button");
-const searchInput = document.getElementById("search");
-const searchButton = document.getElementById("search-button");
+const searchMediaByNameInput = document.getElementById("search-media-by-name");
+const searchMediaByNameButton = document.getElementById("search-media-by-name-button");
+const searchMediaByListInput = document.getElementById("search-media-by-list-id");
+const searchMediaByListButton = document.getElementById("search-media-by-list-button");
 const searchContainer = document.getElementById("search-container");
 const divList = document.getElementById("div-list-container");
 const createListNameInput = document.getElementById("create-list-name");
 const createListDescriptionInput = document.getElementById("create-list-description");
 const createListButton = document.getElementById("create-list-button");
-const addMovieToListInputIdMovie = document.getElementById("add-movie-to-list-id-movie");
-const addMovieToListInputIdList = document.getElementById("add-movie-to-list-id-list");
-const addMovieToListButton = document.getElementById("add-movie-to-list-button");
-const searchMovieListInput = document.getElementById("search-movie-list-id");
-const searchMovieListButton = document.getElementById("search-movie-list-button");
+const addMediaToListInputIdMedia = document.getElementById("add-media-to-list-id-media");
+const addMediaToListInputIdList = document.getElementById("add-media-to-list-id-list");
+const addMediaToListButton = document.getElementById("add-media-to-list-button");
 loginInput.addEventListener("change", () => {
     validateLoginButton();
 });
@@ -55,24 +55,27 @@ logoutButton.addEventListener("click", () => {
     blockForms(true);
     blockLoginForm(false);
 });
-searchButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
-    createList("1");
+searchMediaByNameButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    createListByMediaName("1");
+}));
+searchMediaByListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    createListByListId();
 }));
 createListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
     let name = createListNameInput.value;
     let description = createListDescriptionInput.value;
-    let result = yield createMovieList(name, description);
+    let result = yield createMediaList(name, description);
     if (result.success)
         showMessage("success", `List created successfully, id = ${result.list_id}`);
     if (result.list_id)
         listId = result.list_id;
 }));
-addMovieToListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
-    let movieId = addMovieToListInputIdMovie.value;
-    let listId = addMovieToListInputIdList.value;
-    let result = yield addMovieToList(movieId, listId);
+addMediaToListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    let mediaId = addMediaToListInputIdMedia.value;
+    let listId = addMediaToListInputIdList.value;
+    let result = yield addMediaToList(mediaId, listId);
     if (result.success)
-        showMessage("success", `Movie added to list successfully`);
+        showMessage("success", `Media added to list successfully`);
 }));
 function validateLoginButton() {
     username = loginInput.value;
@@ -86,16 +89,16 @@ function validateLoginButton() {
     }
 }
 function blockForms(disabled) {
-    searchInput.disabled = disabled;
-    searchButton.disabled = disabled;
+    searchMediaByNameInput.disabled = disabled;
+    searchMediaByNameButton.disabled = disabled;
     createListNameInput.disabled = disabled;
     createListDescriptionInput.disabled = disabled;
     createListButton.disabled = disabled;
-    addMovieToListInputIdMovie.disabled = disabled;
-    addMovieToListInputIdList.disabled = disabled;
-    addMovieToListButton.disabled = disabled;
-    searchMovieListInput.disabled = disabled;
-    searchMovieListButton.disabled = disabled;
+    addMediaToListInputIdMedia.disabled = disabled;
+    addMediaToListInputIdList.disabled = disabled;
+    addMediaToListButton.disabled = disabled;
+    searchMediaByListInput.disabled = disabled;
+    searchMediaByListButton.disabled = disabled;
 }
 function blockLoginForm(disabled) {
     loginInput.disabled = disabled;
@@ -108,12 +111,12 @@ function clearForms() {
     loginInput.value = "";
     passwordInput.value = "";
     apiKeyInput.value = "";
-    searchInput.value = "";
+    searchMediaByNameInput.value = "";
     createListNameInput.value = "";
     createListDescriptionInput.value = "";
-    addMovieToListInputIdMovie.value = "";
-    addMovieToListInputIdList.value = "";
-    searchMovieListInput.value = "";
+    addMediaToListInputIdMedia.value = "";
+    addMediaToListInputIdList.value = "";
+    searchMediaByListInput.value = "";
     divList.innerHTML = "";
 }
 function showMessage(type, message) {
@@ -185,37 +188,57 @@ function createSession() {
         console.log(sessionId);
     });
 }
-function searchMovie(query, page) {
+function searchMediaByMediaName(query, page) {
     return __awaiter(this, void 0, void 0, function* () {
         query = encodeURI(query);
-        console.log(query);
         return yield HttpClient.get({
             url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}&page=${page}`,
             method: "GET",
         });
     });
 }
-function createList(page) {
+function searchMediaByListId(listId) {
     return __awaiter(this, void 0, void 0, function* () {
-        divList.innerHTML = "";
-        let lista = document.getElementById("lista");
-        if (lista) {
-            lista.outerHTML = "";
+        return yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/list/${listId}?api_key=${apiKey}`,
+            method: "GET",
+        });
+    });
+}
+function createList(medias) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let list = document.getElementById("list");
+        if (list) {
+            list.outerHTML = "";
         }
-        let query = searchInput.value;
-        let movies = (yield searchMovie(query, page));
         let ul = document.createElement("ul");
-        ul.id = "lista";
-        for (const movie of movies.results) {
+        ul.id = "list";
+        for (const media of medias) {
             let li = document.createElement("li");
-            li.appendChild(document.createTextNode(`${movie.id} - ${movie.original_title}`));
+            li.appendChild(document.createTextNode(`${media.id} - ${media.original_title}`));
             ul.appendChild(li);
         }
-        createPaginate(movies.page, movies.total_pages);
         divList.appendChild(ul);
     });
 }
-function createPaginate(moviesPage, moviesTotalPage) {
+function createListByMediaName(page) {
+    return __awaiter(this, void 0, void 0, function* () {
+        divList.innerHTML = "";
+        let query = searchMediaByNameInput.value;
+        let result = yield searchMediaByMediaName(query, page);
+        createPaginate(result.page, result.total_pages);
+        createList(result.results);
+    });
+}
+function createListByListId() {
+    return __awaiter(this, void 0, void 0, function* () {
+        divList.innerHTML = "";
+        let listId = searchMediaByListInput.value;
+        let result = yield searchMediaByListId(listId);
+        createList(result.items);
+    });
+}
+function createPaginate(mediasPage, mediasTotalPage) {
     let divPaginate = document.createElement("div");
     let previuButton = document.createElement("button");
     let nextButton = document.createElement("button");
@@ -232,9 +255,9 @@ function createPaginate(moviesPage, moviesTotalPage) {
     totalPage.id = "total-page";
     previuButton.innerText = "Anterior";
     nextButton.innerText = "Próximo";
-    page.innerText = moviesPage;
+    page.innerText = mediasPage;
     separator.innerText = "/";
-    totalPage.innerText = moviesTotalPage;
+    totalPage.innerText = mediasTotalPage;
     paginateText.appendChild(page);
     paginateText.appendChild(separator);
     paginateText.appendChild(totalPage);
@@ -242,20 +265,20 @@ function createPaginate(moviesPage, moviesTotalPage) {
     divPaginate.appendChild(paginateText);
     divPaginate.appendChild(nextButton);
     divList.appendChild(divPaginate);
-    if (Number(moviesPage) < 2)
+    if (Number(mediasPage) < 2)
         previuButton.disabled = true;
-    if (Number(moviesPage) >= Number(moviesTotalPage))
+    if (Number(mediasPage) >= Number(mediasTotalPage))
         nextButton.disabled = true;
     previuButton.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-        let page = String(Number(moviesPage) - 1);
-        createList(page);
+        let page = String(Number(mediasPage) - 1);
+        createListByMediaName(page);
     }));
     nextButton.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-        let page = String(Number(moviesPage) + 1);
-        createList(page);
+        let page = String(Number(mediasPage) + 1);
+        createListByMediaName(page);
     }));
 }
-function createMovieList(name, description) {
+function createMediaList(name, description) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield HttpClient.get({
             url: `https://api.themoviedb.org/3/list?api_key=${apiKey}&session_id=${sessionId}`,
@@ -268,13 +291,13 @@ function createMovieList(name, description) {
         });
     });
 }
-function addMovieToList(movieId, listId) {
+function addMediaToList(mediaId, listId) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield HttpClient.get({
             url: `https://api.themoviedb.org/3/list/${listId}/add_item?api_key=${apiKey}&session_id=${sessionId}`,
             method: "POST",
             body: {
-                media_id: movieId,
+                media_id: mediaId,
             },
         });
     });
