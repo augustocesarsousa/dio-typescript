@@ -1,13 +1,9 @@
 let apiKey: string;
+let listId: string;
 let password: string;
 let requestToken: string;
 let sessionId: string;
 let username: string;
-
-type Result = {
-  request_token?: string;
-  session_id?: string;
-};
 
 type Login = {
   username?: string;
@@ -15,11 +11,22 @@ type Login = {
   request_token?: string;
 };
 
+type Movie = {
+  original_title: string;
+  id: string;
+};
+
 type MovieList = {
   name?: string;
   description?: string;
   language?: string;
+  media_id?: string;
 }
+
+type Result = {
+  request_token?: string;
+  session_id?: string;
+};
 
 type ResultMovie = {
   page: string;
@@ -27,10 +34,14 @@ type ResultMovie = {
   total_pages: string;
 };
 
-type Movie = {
-  original_title: string;
-  id: string;
-};
+type ResultNewList = {
+  status_code: number;
+  status_message: string;
+  success: boolean;
+  list_id?: string;
+}
+
+const messagesSpan = document.getElementById("messages") as HTMLSpanElement;
 
 const loginInput = document.getElementById("login") as HTMLInputElement;
 const passwordInput = document.getElementById("senha") as HTMLInputElement;
@@ -57,8 +68,9 @@ const createListNameInput = document.getElementById("create-list-name") as HTMLI
 const createListDescriptionInput = document.getElementById("create-list-description") as HTMLInputElement;
 const createListButton = document.getElementById("create-list-button") as HTMLButtonElement;
 
-const addMovieInput = document.getElementById("add-movie-list-id") as HTMLInputElement;
-const addMovieButton = document.getElementById("add-movie-list-button") as HTMLButtonElement;
+const addMovieToListInputIdMovie = document.getElementById("add-movie-to-list-id-movie") as HTMLInputElement;
+const addMovieToListInputIdList = document.getElementById("add-movie-to-list-id-list") as HTMLInputElement;
+const addMovieToListButton = document.getElementById("add-movie-to-list-button") as HTMLButtonElement;
 
 const searchMovieListInput = document.getElementById("search-movie-list-id") as HTMLInputElement;
 const searchMovieListButton = document.getElementById("search-movie-list-button") as HTMLButtonElement;
@@ -98,8 +110,68 @@ searchButton.addEventListener("click", async () => {
 createListButton.addEventListener("click",async () => {
   let name = createListNameInput.value;
   let description = createListDescriptionInput.value;
-  createMovieList(name, description);
+  let result = await createMovieList(name, description);
+  if(result.success) showMessage("success", `List created successfully, id = ${result.list_id}`);
+  if(result.list_id) listId = result.list_id;
 });
+
+addMovieToListButton.addEventListener("click",async () => {
+  let movieId = addMovieToListInputIdMovie.value;
+  let listId = addMovieToListInputIdList.value;
+  let result = await addMovieToList(movieId, listId);
+  if(result.success) showMessage("success", `Movie added to list successfully`);
+});
+
+function validateLoginButton() {
+  username = loginInput.value;
+  password = passwordInput.value;
+  apiKey = apiKeyInput.value;
+
+  if (username && password && apiKey) {
+    loginButton.disabled = false;
+  } else {
+    loginButton.disabled = true;
+  }
+}
+
+function blockForms(disabled: boolean) {
+  searchInput.disabled = disabled;
+  searchButton.disabled = disabled;
+  createListNameInput.disabled = disabled;
+  createListDescriptionInput.disabled = disabled;
+  createListButton.disabled = disabled;
+  addMovieToListInputIdMovie.disabled = disabled;
+  addMovieToListInputIdList.disabled = disabled;
+  addMovieToListButton.disabled = disabled;
+  searchMovieListInput.disabled = disabled;
+  searchMovieListButton.disabled = disabled;
+}
+
+function blockLoginForm(disabled: boolean) {
+  loginInput.disabled = disabled;
+  passwordInput.disabled = disabled;
+  apiKeyInput.disabled = disabled;
+  loginButton.disabled = disabled;
+  logoutButton.disabled = !disabled;
+}
+
+function clearForms() {
+  loginInput.value = "";
+  passwordInput.value = "";
+  apiKeyInput.value = "";
+  searchInput.value = "";
+  createListNameInput.value = "";
+  createListDescriptionInput.value = "";
+  addMovieToListInputIdMovie.value = "";
+  addMovieToListInputIdList.value = "";
+  searchMovieListInput.value = "";
+  divList.innerHTML = "";
+}
+
+function showMessage(type: string, message: string) {
+  messagesSpan.classList.add(type);
+  messagesSpan.innerText = message;
+}
 
 class HttpClient {
   static async get({
@@ -145,18 +217,6 @@ class HttpClient {
   }
 }
 
-function validateLoginButton() {
-  username = loginInput.value;
-  password = passwordInput.value;
-  apiKey = apiKeyInput.value;
-
-  if (username && password && apiKey) {
-    loginButton.disabled = false;
-  } else {
-    loginButton.disabled = true;
-  }
-}
-
 async function createRequestToken() {
   let result = (await HttpClient.get({
     url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
@@ -183,38 +243,7 @@ async function createSession() {
     method: "GET",
   })) as Result;
   sessionId = result.session_id as string;
-}
-
-function blockForms(disabled: boolean) {
-  searchInput.disabled = disabled;
-  searchButton.disabled = disabled;
-  createListNameInput.disabled = disabled;
-  createListDescriptionInput.disabled = disabled;
-  createListButton.disabled = disabled;
-  addMovieInput.disabled = disabled;
-  addMovieButton.disabled = disabled;
-  searchMovieListInput.disabled = disabled;
-  searchMovieListButton.disabled = disabled;
-}
-
-function blockLoginForm(disabled: boolean) {
-  loginInput.disabled = disabled;
-  passwordInput.disabled = disabled;
-  apiKeyInput.disabled = disabled;
-  loginButton.disabled = disabled;
-  logoutButton.disabled = !disabled;
-}
-
-function clearForms() {
-  loginInput.value = "";
-  passwordInput.value = "";
-  apiKeyInput.value = "";
-  searchInput.value = "";
-  createListNameInput.value = "";
-  createListDescriptionInput.value = "";
-  addMovieInput.value = "";
-  searchMovieListInput.value = "";
-  divList.innerHTML = "";
+  console.log(sessionId);
 }
 
 async function searchMovie(query: string, page: string) {
@@ -291,7 +320,7 @@ function createPaginate(moviesPage: string, moviesTotalPage: string) {
 }
 
 async function createMovieList(name: string, description: string) {
-  let result = await HttpClient.get({
+  return await HttpClient.get({
     url: `https://api.themoviedb.org/3/list?api_key=${apiKey}&session_id=${sessionId}`,
     method: "POST",
     body: {
@@ -299,6 +328,15 @@ async function createMovieList(name: string, description: string) {
       description: description,
       language: "pt-br",
     },
-  });
-  console.log(result);
+  })  as ResultNewList;
+}
+
+async function addMovieToList(movieId: string, listId: string) {
+  return await HttpClient.get({
+    url: `https://api.themoviedb.org/3/list/${listId}/add_item?api_key=${apiKey}&session_id=${sessionId}`,
+    method: "POST",
+    body: {
+      media_id: movieId,
+    },
+  }) as ResultNewList;
 }

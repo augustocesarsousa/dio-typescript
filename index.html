@@ -9,8 +9,8 @@
     <title>Typescript tests</title>
   </head>
   <body>
+    <span id="messages"></span>
     <div id="container">
-      <span id="messages"></span>
       <div id="login-content">
         <input id="login" placeholder="Usuário" />
         <input id="senha" placeholder="Senha" type="password" />
@@ -29,9 +29,10 @@
           <input type="text" id="create-list-description" class="mb-5" placeholder="Descrição da lista" disabled>
           <button id="create-list-button" class="mb-5" disabled>Criar nova lista</button>
         </div>
-        <div id="add-movie-list-content" class="mb-5">
-          <input type="text" id="add-movie-list-id" class="mb-5" placeholder="Id do filme" disabled>
-          <button id="add-movie-list-button" class="mb-5" disabled>Adicionar filme a lista</button>
+        <div id="add-movie-to-list-content" class="mb-5">
+          <input type="text" id="add-movie-to-list-id-movie" class="mb-5" placeholder="Id do filme" disabled>
+          <input type="text" id="add-movie-to-list-id-list" class="mb-5" placeholder="Id da lista" disabled>
+          <button id="add-movie-to-list-button" class="mb-5" disabled>Adicionar filme a lista</button>
         </div>
         <div id="search-movie-list-content" class="mb-5">
           <input type="text" id="search-movie-list-id" class="mb-5" placeholder="Id da lista" disabled>

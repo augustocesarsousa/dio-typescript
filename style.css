@@ -1,10 +1,22 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
 }
 
 .mb-5 {
     margin-bottom: 5px;
+}
+
+#messages {
+    height: 18px;
+    margin-bottom: 5px;
+    text-align: center;
 }
 
 #container {
@@ -46,7 +58,15 @@ body {
     margin-left: 20px;
 }
 
-#create-list-content, #add-movie-list-content, #search-movie-list-content {
+#create-list-content, #add-movie-to-list-content, #search-movie-list-content {
     display: flex;
     flex-direction: column;
+}
+
+.success {
+    color: blue;
+}
+
+.error {
+    color: red;
 }
