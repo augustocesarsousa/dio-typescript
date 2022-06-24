@@ -150,8 +150,8 @@ function createList(page) {
             li.appendChild(document.createTextNode(`${movie.id} - ${movie.original_title}`));
             ul.appendChild(li);
         }
-        divList.appendChild(ul);
         createPaginate(movies.page, movies.total_pages);
+        divList.appendChild(ul);
     });
 }
 function createPaginate(moviesPage, moviesTotalPage) {
@@ -169,8 +169,6 @@ function createPaginate(moviesPage, moviesTotalPage) {
     page.id = "number-page";
     separator.id = "separator-page";
     totalPage.id = "total-page";
-    divPaginate.setAttribute("style", "display: flex; height: 20px; justify-content: center; align-items: center;");
-    paginateText.setAttribute("style", "margin: 0 5px");
     previuButton.innerText = "Anterior";
     nextButton.innerText = "Próximo";
     page.innerText = moviesPage;

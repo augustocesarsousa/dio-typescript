@@ -1,0 +1,52 @@
+body {
+    display: flex;
+    justify-content: center;
+}
+
+.mb-5 {
+    margin-bottom: 5px;
+}
+
+#container {
+    display: flex;
+}
+
+#login-content {
+    display: flex;
+    width: 300px;
+    height: 100px;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+#search-container {
+    margin-left: 20px;
+}
+
+#div-list-container {
+    width: 300px;
+}
+
+#paginate-buttons {
+    display: flex; 
+    height: 20px; 
+    justify-content: center; 
+    align-items: center; 
+    margin-top: 15px;
+}
+
+#paginate-text {
+    margin: 0 5px;
+}
+
+#create-list-container {
+    display: flex;
+    width: 300px;
+    flex-direction: column;
+    margin-left: 20px;
+}
+
+#create-list-content, #add-movie-list-content, #search-movie-list-content {
+    display: flex;
+    flex-direction: column;
+}

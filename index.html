@@ -4,29 +4,37 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Typescript tests</title>
+    <link rel="stylesheet" href="style.css">
     <script src="index.js" defer></script>
+    <title>Typescript tests</title>
   </head>
   <body>
-    <div style="display: flex">
-      <div
-        style="
-          display: flex;
-          width: 300px;
-          height: 100px;
-          justify-content: space-between;
-          flex-direction: column;
-        "
-      >
-        <input id="login" placeholder="Login" />
+    <div id="container">
+      <div id="login-content">
+        <input id="login" placeholder="Usuário" />
         <input id="senha" placeholder="Senha" type="password" />
         <input id="api-key" placeholder="Api Key" />
         <button id="login-button" disabled>Login</button>
       </div>
-      <div id="search-container" style="margin-left: 20px">
-        <input id="search" placeholder="Escreva..." />
+      <div id="search-container">
+        <input id="search" placeholder="Nome do filme" />
         <button id="search-button">Pesquisar Filme</button>
-        <div id="div-list-container" style="width: 300px"></div>
+        <div id="div-list-container"></div>
+      </div>
+      <div id="create-list-container">
+        <div id="create-list-content" class="mb-5">
+          <input type="text" id="list-name" class="mb-5" placeholder="Nome da lista">
+          <input type="text" id="list-description" class="mb-5" placeholder="Descrição da lista">
+          <button id="create-list-button" class="mb-5">Criar nova lista</button>
+        </div>
+        <div id="add-movie-list-content" class="mb-5">
+          <input type="text" id="movie-id-input" class="mb-5" placeholder="Id do filme">
+          <button id="add-movie-list-button" class="mb-5">Adicionar filme a lista</button>
+        </div>
+        <div id="search-movie-list-content" class="mb-5">
+          <input type="text" id="movie-search-input" class="mb-5" placeholder="Id da lista">
+          <button id="search-movie-list-button" class="mb-5">Buscar lista</button>
+        </div>
       </div>
     </div>
   </body>
