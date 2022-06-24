@@ -1,5 +1,6 @@
 let apiKey: string;
 let listId: string;
+let mediaName: string;
 let password: string;
 let requestToken: string;
 let sessionId: string;
@@ -26,16 +27,20 @@ type MediaBody = {
 type Result = {
   request_token?: string;
   session_id?: string;
+  status_message?: string;
+  success?: boolean;
 };
 
 type ResultMediaByListId = {
   items: Media[];
+  item_count: number;
 };
 
 type ResultMediaByMediaName = {
   page: string;
   results: Media[];
   total_pages: string;
+  total_results: number;
 };
 
 type ResultNewList = {
@@ -79,19 +84,24 @@ const addMediaToListInputIdMedia = document.getElementById("add-media-to-list-id
 const addMediaToListInputIdList = document.getElementById("add-media-to-list-id-list") as HTMLInputElement;
 const addMediaToListButton = document.getElementById("add-media-to-list-button") as HTMLButtonElement;
 
-loginInput.addEventListener("change", () => {
-  validateLoginButton();
-});
-
-passwordInput.addEventListener("change", () => {
-  validateLoginButton();
-});
-
-apiKeyInput.addEventListener("change", () => {
-  validateLoginButton();
-});
-
 loginButton.addEventListener("click", async () => {
+  showMessage("success", "");  
+  username = loginInput.value;
+  if(!username) {
+    showMessage("error", "Informe o nome do usuário");
+    return;
+  }
+  password = passwordInput.value;
+  if(!password) {
+    showMessage("error", "Informe a senha");
+    return;
+  }
+  apiKey = apiKeyInput.value;
+  if(!apiKey) {
+    showMessage("error", "Informe a chave da api");
+    return;
+  }
+
   await createRequestToken();
   await login();
   await createSession();
@@ -102,45 +112,70 @@ loginButton.addEventListener("click", async () => {
 });
 
 logoutButton.addEventListener("click", () => {
+  showMessage("success", "");
   clearForms();
   blockForms(true);
   blockLoginForm(false);
 })
 
 searchMediaByNameButton.addEventListener("click", async () => {
+  showMessage("success", "");
+  mediaName = searchMediaByNameInput.value;
+  if(!mediaName){
+    showMessage("error", "Informe o nome da mídia");
+    return;
+  }
   createListByMediaName("1");
+  searchMediaByNameInput.value = "";
 });
 
 searchMediaByListButton.addEventListener("click",async () => {
+  listId = searchMediaByListInput.value;
+  if(!listId){
+    showMessage("error", "Informe o ID da lista");
+    return;
+  }
+  showMessage("success", "");
   createListByListId();
+  searchMediaByListInput.value = "";
 });
 
 createListButton.addEventListener("click",async () => {
+  showMessage("success", "");
   let name = createListNameInput.value;
+  if(!name) {
+    showMessage("error", "Informe o nome da lista");
+    return;
+  }
   let description = createListDescriptionInput.value;
+  if(!description) {
+    showMessage("error", "Informe a descrição da lista");
+    return;
+  }
   let result = await createMediaList(name, description);
-  if(result.success) showMessage("success", `List created successfully, id = ${result.list_id}`);
+  if(result.success) showMessage("success", `Lista criada com sucesso, id = ${result.list_id}`);
   if(result.list_id) listId = result.list_id;
+  createListNameInput.value = "";
+  createListDescriptionInput.value = "";
 });
 
 addMediaToListButton.addEventListener("click",async () => {
+  showMessage("success", "");
   let mediaId = addMediaToListInputIdMedia.value;
-  let listId = addMediaToListInputIdList.value;
-  let result = await addMediaToList(mediaId, listId);
-  if(result.success) showMessage("success", `Media added to list successfully`);
-});
-
-function validateLoginButton() {
-  username = loginInput.value;
-  password = passwordInput.value;
-  apiKey = apiKeyInput.value;
-
-  if (username && password && apiKey) {
-    loginButton.disabled = false;
-  } else {
-    loginButton.disabled = true;
+  if(!mediaId) {
+    showMessage("error", "Informe o ID da mídia");
+    return;
   }
-}
+  let listId = addMediaToListInputIdList.value;
+  if(!listId) {
+    showMessage("error", "Informe o ID da lista");
+    return;
+  }
+  let result = await addMediaToList(mediaId, listId);
+  if(result.success) showMessage("success", `Media adicionada na lista com sucesso`);
+  addMediaToListInputIdMedia.value = "";
+  addMediaToListInputIdList.value = "";
+});
 
 function blockForms(disabled: boolean) {
   searchMediaByNameInput.disabled = disabled;
@@ -202,8 +237,9 @@ class HttpClient {
         } else {
           reject({
             status: request.status,
-            statusText: request.statusText,
+            responseText: request.responseText,
           });
+          showMessage("error", (JSON.parse(request.responseText)).status_message);
         }
       };
       request.onerror = () => {
@@ -226,10 +262,14 @@ class HttpClient {
 }
 
 async function createRequestToken() {
-  let result = (await HttpClient.get({
+  let result = await HttpClient.get({
     url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
     method: "GET",
-  })) as Result;
+  }) as Result;
+  if(result.success === false){
+    if(result.status_message) showMessage("error", result.status_message);
+    return;
+  }
   requestToken = result.request_token as string;
 }
 
@@ -251,7 +291,6 @@ async function createSession() {
     method: "GET",
   })) as Result;
   sessionId = result.session_id as string;
-  console.log(sessionId);
 }
 
 async function searchMediaByMediaName(query: string, page: string) {
@@ -288,16 +327,22 @@ async function createList(medias: Media[]) {
 
 async function createListByMediaName(page: string) {
   divList.innerHTML = "";
-  let query = searchMediaByNameInput.value;
-  let result = await searchMediaByMediaName(query, page);
+  let result = await searchMediaByMediaName(mediaName, page);
+  if(result.total_results === 0) {
+    showMessage("error", `Não encontramos nenhum resultado para ${mediaName}`);
+    return;
+  };
   createPaginate(result.page, result.total_pages);
   createList(result.results);  
 }
 
 async function createListByListId() {
   divList.innerHTML = "";
-  let listId = searchMediaByListInput.value;
   let result = await searchMediaByListId(listId);
+  if(result.item_count === 0) {
+    showMessage("error", `Não encontramos nenhum resultado para ${listId}`);
+    return;
+  };
   createList(result.items);  
 }
 

@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 let apiKey;
 let listId;
+let mediaName;
 let password;
 let requestToken;
 let sessionId;
@@ -32,16 +33,23 @@ const createListButton = document.getElementById("create-list-button");
 const addMediaToListInputIdMedia = document.getElementById("add-media-to-list-id-media");
 const addMediaToListInputIdList = document.getElementById("add-media-to-list-id-list");
 const addMediaToListButton = document.getElementById("add-media-to-list-button");
-loginInput.addEventListener("change", () => {
-    validateLoginButton();
-});
-passwordInput.addEventListener("change", () => {
-    validateLoginButton();
-});
-apiKeyInput.addEventListener("change", () => {
-    validateLoginButton();
-});
 loginButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    showMessage("success", "");
+    username = loginInput.value;
+    if (!username) {
+        showMessage("error", "Informe o nome do usuário");
+        return;
+    }
+    password = passwordInput.value;
+    if (!password) {
+        showMessage("error", "Informe a senha");
+        return;
+    }
+    apiKey = apiKeyInput.value;
+    if (!apiKey) {
+        showMessage("error", "Informe a chave da api");
+        return;
+    }
     yield createRequestToken();
     yield login();
     yield createSession();
@@ -51,43 +59,69 @@ loginButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, fu
     }
 }));
 logoutButton.addEventListener("click", () => {
+    showMessage("success", "");
     clearForms();
     blockForms(true);
     blockLoginForm(false);
 });
 searchMediaByNameButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    showMessage("success", "");
+    mediaName = searchMediaByNameInput.value;
+    if (!mediaName) {
+        showMessage("error", "Informe o nome da mídia");
+        return;
+    }
     createListByMediaName("1");
+    searchMediaByNameInput.value = "";
 }));
 searchMediaByListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    listId = searchMediaByListInput.value;
+    if (!listId) {
+        showMessage("error", "Informe o ID da lista");
+        return;
+    }
+    showMessage("success", "");
     createListByListId();
+    searchMediaByListInput.value = "";
 }));
 createListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    showMessage("success", "");
     let name = createListNameInput.value;
+    if (!name) {
+        showMessage("error", "Informe o nome da lista");
+        return;
+    }
     let description = createListDescriptionInput.value;
+    if (!description) {
+        showMessage("error", "Informe a descrição da lista");
+        return;
+    }
     let result = yield createMediaList(name, description);
     if (result.success)
-        showMessage("success", `List created successfully, id = ${result.list_id}`);
+        showMessage("success", `Lista criada com sucesso, id = ${result.list_id}`);
     if (result.list_id)
         listId = result.list_id;
+    createListNameInput.value = "";
+    createListDescriptionInput.value = "";
 }));
 addMediaToListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    showMessage("success", "");
     let mediaId = addMediaToListInputIdMedia.value;
+    if (!mediaId) {
+        showMessage("error", "Informe o ID da mídia");
+        return;
+    }
     let listId = addMediaToListInputIdList.value;
+    if (!listId) {
+        showMessage("error", "Informe o ID da lista");
+        return;
+    }
     let result = yield addMediaToList(mediaId, listId);
     if (result.success)
-        showMessage("success", `Media added to list successfully`);
+        showMessage("success", `Media adicionada na lista com sucesso`);
+    addMediaToListInputIdMedia.value = "";
+    addMediaToListInputIdList.value = "";
 }));
-function validateLoginButton() {
-    username = loginInput.value;
-    password = passwordInput.value;
-    apiKey = apiKeyInput.value;
-    if (username && password && apiKey) {
-        loginButton.disabled = false;
-    }
-    else {
-        loginButton.disabled = true;
-    }
-}
 function blockForms(disabled) {
     searchMediaByNameInput.disabled = disabled;
     searchMediaByNameButton.disabled = disabled;
@@ -137,8 +171,9 @@ class HttpClient {
                     else {
                         reject({
                             status: request.status,
-                            statusText: request.statusText,
+                            responseText: request.responseText,
                         });
+                        showMessage("error", (JSON.parse(request.responseText)).status_message);
                     }
                 };
                 request.onerror = () => {
@@ -158,10 +193,15 @@ class HttpClient {
 }
 function createRequestToken() {
     return __awaiter(this, void 0, void 0, function* () {
-        let result = (yield HttpClient.get({
+        let result = yield HttpClient.get({
             url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
             method: "GET",
-        }));
+        });
+        if (result.success === false) {
+            if (result.status_message)
+                showMessage("error", result.status_message);
+            return;
+        }
         requestToken = result.request_token;
     });
 }
@@ -185,7 +225,6 @@ function createSession() {
             method: "GET",
         }));
         sessionId = result.session_id;
-        console.log(sessionId);
     });
 }
 function searchMediaByMediaName(query, page) {
@@ -224,8 +263,12 @@ function createList(medias) {
 function createListByMediaName(page) {
     return __awaiter(this, void 0, void 0, function* () {
         divList.innerHTML = "";
-        let query = searchMediaByNameInput.value;
-        let result = yield searchMediaByMediaName(query, page);
+        let result = yield searchMediaByMediaName(mediaName, page);
+        if (result.total_results === 0) {
+            showMessage("error", `Não encontramos nenhum resultado para ${mediaName}`);
+            return;
+        }
+        ;
         createPaginate(result.page, result.total_pages);
         createList(result.results);
     });
@@ -233,8 +276,12 @@ function createListByMediaName(page) {
 function createListByListId() {
     return __awaiter(this, void 0, void 0, function* () {
         divList.innerHTML = "";
-        let listId = searchMediaByListInput.value;
         let result = yield searchMediaByListId(listId);
+        if (result.item_count === 0) {
+            showMessage("error", `Não encontramos nenhum resultado para ${listId}`);
+            return;
+        }
+        ;
         createList(result.items);
     });
 }
