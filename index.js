@@ -17,10 +17,18 @@ const loginInput = document.getElementById("login");
 const passwordInput = document.getElementById("senha");
 const apiKeyInput = document.getElementById("api-key");
 const loginButton = document.getElementById("login-button");
+const logoutButton = document.getElementById("logout-button");
 const searchInput = document.getElementById("search");
 const searchButton = document.getElementById("search-button");
 const searchContainer = document.getElementById("search-container");
 const divList = document.getElementById("div-list-container");
+const createListNameInput = document.getElementById("create-list-name");
+const createListDescriptionInput = document.getElementById("create-list-description");
+const createListButton = document.getElementById("create-list-button");
+const addMovieInput = document.getElementById("add-movie-list-id");
+const addMovieButton = document.getElementById("add-movie-list-button");
+const searchMovieListInput = document.getElementById("search-movie-list-id");
+const searchMovieListButton = document.getElementById("search-movie-list-button");
 loginInput.addEventListener("change", () => {
     validateLoginButton();
 });
@@ -34,12 +42,23 @@ loginButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, fu
     yield createRequestToken();
     yield login();
     yield createSession();
-    console.log(sessionId);
-    if (sessionId)
-        releaseSearch();
+    if (sessionId) {
+        blockForms(false);
+        blockLoginForm(true);
+    }
 }));
+logoutButton.addEventListener("click", () => {
+    clearForms();
+    blockForms(true);
+    blockLoginForm(false);
+});
 searchButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
     createList("1");
+}));
+createListButton.addEventListener("click", () => __awaiter(void 0, void 0, void 0, function* () {
+    let name = createListNameInput.value;
+    let description = createListDescriptionInput.value;
+    createMovieList(name, description);
 }));
 class HttpClient {
     static get({ url, method, body = {}, }) {
@@ -116,20 +135,41 @@ function createSession() {
         sessionId = result.session_id;
     });
 }
-function releaseSearch() {
-    searchInput.disabled = false;
-    searchButton.disabled = false;
+function blockForms(disabled) {
+    searchInput.disabled = disabled;
+    searchButton.disabled = disabled;
+    createListNameInput.disabled = disabled;
+    createListDescriptionInput.disabled = disabled;
+    createListButton.disabled = disabled;
+    addMovieInput.disabled = disabled;
+    addMovieButton.disabled = disabled;
+    searchMovieListInput.disabled = disabled;
+    searchMovieListButton.disabled = disabled;
+}
+function blockLoginForm(disabled) {
+    loginInput.disabled = disabled;
+    passwordInput.disabled = disabled;
+    apiKeyInput.disabled = disabled;
+    loginButton.disabled = disabled;
+    logoutButton.disabled = !disabled;
+}
+function clearForms() {
+    loginInput.value = "";
+    passwordInput.value = "";
+    apiKeyInput.value = "";
+    searchInput.value = "";
+    createListNameInput.value = "";
+    createListDescriptionInput.value = "";
+    addMovieInput.value = "";
+    searchMovieListInput.value = "";
+    divList.innerHTML = "";
 }
 function searchMovie(query, page) {
     return __awaiter(this, void 0, void 0, function* () {
         query = encodeURI(query);
         console.log(query);
-        // return await HttpClient.get({
-        //   url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`,
-        //   method: "GET",
-        // });
         return yield HttpClient.get({
-            url: `https://api.themoviedb.org/3/search/movie?api_key=a47c8e861370f3df73b313b7beb2b794&query=${query}&page=${page}`,
+            url: `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}&page=${page}`,
             method: "GET",
         });
     });
@@ -183,7 +223,7 @@ function createPaginate(moviesPage, moviesTotalPage) {
     divList.appendChild(divPaginate);
     if (Number(moviesPage) < 2)
         previuButton.disabled = true;
-    if (Number(moviesPage) === Number(moviesTotalPage))
+    if (Number(moviesPage) >= Number(moviesTotalPage))
         nextButton.disabled = true;
     previuButton.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
         let page = String(Number(moviesPage) - 1);
@@ -193,4 +233,18 @@ function createPaginate(moviesPage, moviesTotalPage) {
         let page = String(Number(moviesPage) + 1);
         createList(page);
     }));
+}
+function createMovieList(name, description) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let result = yield HttpClient.get({
+            url: `https://api.themoviedb.org/3/list?api_key=${apiKey}&session_id=${sessionId}`,
+            method: "POST",
+            body: {
+                name: name,
+                description: description,
+                language: "pt-br",
+            },
+        });
+        console.log(result);
+    });
 }

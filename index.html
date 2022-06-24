@@ -10,30 +10,32 @@
   </head>
   <body>
     <div id="container">
+      <span id="messages"></span>
       <div id="login-content">
         <input id="login" placeholder="Usuário" />
         <input id="senha" placeholder="Senha" type="password" />
         <input id="api-key" placeholder="Api Key" />
         <button id="login-button" disabled>Login</button>
+        <button id="logout-button" disabled>Logout</button>
       </div>
       <div id="search-container">
-        <input id="search" placeholder="Nome do filme" />
-        <button id="search-button">Pesquisar Filme</button>
+        <input id="search" placeholder="Nome do filme" disabled/>
+        <button id="search-button" disabled>Pesquisar Filme</button>
         <div id="div-list-container"></div>
       </div>
       <div id="create-list-container">
         <div id="create-list-content" class="mb-5">
-          <input type="text" id="list-name" class="mb-5" placeholder="Nome da lista">
-          <input type="text" id="list-description" class="mb-5" placeholder="Descrição da lista">
-          <button id="create-list-button" class="mb-5">Criar nova lista</button>
+          <input type="text" id="create-list-name" class="mb-5" placeholder="Nome da lista" disabled>
+          <input type="text" id="create-list-description" class="mb-5" placeholder="Descrição da lista" disabled>
+          <button id="create-list-button" class="mb-5" disabled>Criar nova lista</button>
         </div>
         <div id="add-movie-list-content" class="mb-5">
-          <input type="text" id="movie-id-input" class="mb-5" placeholder="Id do filme">
-          <button id="add-movie-list-button" class="mb-5">Adicionar filme a lista</button>
+          <input type="text" id="add-movie-list-id" class="mb-5" placeholder="Id do filme" disabled>
+          <button id="add-movie-list-button" class="mb-5" disabled>Adicionar filme a lista</button>
         </div>
         <div id="search-movie-list-content" class="mb-5">
-          <input type="text" id="movie-search-input" class="mb-5" placeholder="Id da lista">
-          <button id="search-movie-list-button" class="mb-5">Buscar lista</button>
+          <input type="text" id="search-movie-list-id" class="mb-5" placeholder="Id da lista" disabled>
+          <button id="search-movie-list-button" class="mb-5" disabled>Buscar lista</button>
         </div>
       </div>
     </div>
